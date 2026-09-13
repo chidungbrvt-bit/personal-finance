@@ -1,4 +1,4 @@
-import type { ApiResponse, AuthSession, LoginInput, RegisterInput, ResetPasswordInput } from '../types'
+import type { ApiResponse, AuthSession, LoginInput, PasswordResetResult, RegisterInput, ResetPasswordInput } from '../types'
 import { apiClient } from './apiClient'
 
 export const authApi = {
@@ -11,6 +11,6 @@ export const authApi = {
   },
 
   async resetPassword(input: ResetPasswordInput) {
-    return (await apiClient.post<ApiResponse<null>>('/api/auth/reset-password', input)).data
+    return (await apiClient.post<ApiResponse<PasswordResetResult>>('/api/auth/reset-password', input)).data.data
   },
 }

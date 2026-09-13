@@ -51,11 +51,10 @@ public class AuthController {
     public ResponseEntity<Object> resetPassword(
             @Valid @RequestBody ResetPasswordRequest request
     ) {
-        passwordResetService.resetPassword(request);
         return ResponseHandler.responseBuilder(
                 "Password reset successfully",
                 HttpStatus.OK,
-                null
+                passwordResetService.resetPassword(request)
         );
     }
 }

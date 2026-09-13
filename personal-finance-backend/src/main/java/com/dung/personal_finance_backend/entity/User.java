@@ -26,6 +26,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "recovery_code_hash")
+    private String recoveryCodeHash;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
@@ -135,6 +138,14 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRecoveryCodeHash() {
+        return recoveryCodeHash;
+    }
+
+    public void setRecoveryCodeHash(String recoveryCodeHash) {
+        this.recoveryCodeHash = recoveryCodeHash;
     }
 
     @PrePersist

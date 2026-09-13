@@ -13,9 +13,11 @@ export interface User {
 }
 export interface LoginInput { email: string; password: string }
 export interface RegisterInput { name: string; email: string; password: string }
-export interface ResetPasswordInput { recoveryCode: string; newPassword: string }
+export interface ResetPasswordInput { email: string; recoveryCode: string; newPassword: string }
+export interface PasswordResetResult { recoveryCode?: string }
 export interface AuthSession {
   accessToken: string; tokenType: 'Bearer'; expiresIn: number; user: User
+  recoveryCode?: string
 }
 
 export interface Account {

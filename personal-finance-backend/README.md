@@ -12,7 +12,6 @@ Required variables:
 | `DB_USERNAME` | MySQL username |
 | `DB_PASSWORD` | MySQL password |
 | `JWT_SECRET` | Base64-encoded JWT key containing at least 32 bytes |
-| `PASSWORD_RESET_RECOVERY_CODE` | Private recovery code for the single-user password reset page |
 
 Optional variable:
 
@@ -22,6 +21,8 @@ Optional variable:
 | `SPRING_PROFILES_ACTIVE` | `dev` |
 | `FLYWAY_BASELINE_ON_MIGRATE` | `false` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` |
+| `PASSWORD_RESET_RECOVERY_CODE` | Empty; temporary migration code for a user created before V5 |
+| `PASSWORD_RESET_USER_EMAIL` | Empty; email belonging to that legacy user |
 
 `CORS_ALLOWED_ORIGINS` is a comma-separated list of exact frontend origins. Do not include a path or trailing slash. For example:
 
@@ -51,7 +52,6 @@ $env:DB_URL = "jdbc:mysql://localhost:8000/personal_finance"
 $env:DB_USERNAME = "root"
 $env:DB_PASSWORD = "your-local-password"
 $env:SPRING_PROFILES_ACTIVE = "dev"
-$env:PASSWORD_RESET_RECOVERY_CODE = "replace-with-a-long-private-code"
 
 $jwtBytes = [byte[]]::new(32)
 [Security.Cryptography.RandomNumberGenerator]::Fill($jwtBytes)
@@ -71,11 +71,13 @@ PowerShell environment variables above exist only in that terminal session. In I
 
 The `.env.example` file is documentation only. Spring Boot does not automatically load a `.env` file. If you create `.env` for another tool, Git ignores it.
 
-## Single-user password recovery
+## Per-user password recovery
 
-The Forgot Password link opens the reset form directly. The user must enter `PASSWORD_RESET_RECOVERY_CODE` before a new password can be saved. Keep this code outside Git, use at least 16 random characters, and store a copy in a password manager.
+Registration creates a cryptographically random recovery code for that user. The API returns the raw code only in the successful registration response; the frontend displays it once and deliberately excludes it from `localStorage`. The database stores only a BCrypt hash in `user_info.recovery_code_hash`.
 
-This mode intentionally works only when the database contains exactly one user. If a second user is added, password recovery is rejected rather than choosing an account ambiguously.
+Resetting a password requires the account email, that user's recovery code, and a new password. Login responses never include the recovery code, and the original code cannot be reconstructed from its database hash.
+
+An account created before migration V5 has no personal recovery code. For that account only, temporarily set `PASSWORD_RESET_RECOVERY_CODE` and `PASSWORD_RESET_USER_EMAIL`. Its first successful reset converts it to a personal code and displays the new code once. Save that code, then delete both temporary variables from Railway.
 
 ## Database migrations
 
@@ -84,7 +86,8 @@ Flyway migrations live in `src/main/resources/db/migration`:
 - `V1__create_initial_schema.sql` creates a new database schema.
 - `V2__add_query_indexes.sql` adds indexes for the repository queries used by the application.
 - `V3__add_password_reset_tokens.sql` is the historical email-reset migration.
-- `V4__remove_password_reset_tokens.sql` removes that table after switching to single-user recovery.
+- `V4__remove_password_reset_tokens.sql` removes the abandoned email-reset token table.
+- `V5__add_user_recovery_code_hash.sql` stores a separate BCrypt recovery-code hash for each user.
 
 For a new empty database, keep `FLYWAY_BASELINE_ON_MIGRATE=false`; Flyway runs V1 and V2 normally.
 

@@ -21,7 +21,13 @@ export function getAuthSession(): AuthSession | null {
 }
 
 export function saveAuthSession(session: AuthSession) {
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session))
+  const persistedSession: AuthSession = {
+    accessToken: session.accessToken,
+    tokenType: session.tokenType,
+    expiresIn: session.expiresIn,
+    user: session.user,
+  }
+  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(persistedSession))
 }
 
 export function clearAuthSession() {

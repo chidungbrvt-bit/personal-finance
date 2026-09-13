@@ -6,7 +6,6 @@ import com.dung.personal_finance_backend.dto.request.LoginRequest;
 import com.dung.personal_finance_backend.dto.request.RegisterRequest;
 import com.dung.personal_finance_backend.entity.User;
 import com.dung.personal_finance_backend.enums.Role;
-import com.dung.personal_finance_backend.exception.BusinessRuleException;
 import com.dung.personal_finance_backend.repository.UserRepository;
 import com.dung.personal_finance_backend.security.JwtService;
 import com.dung.personal_finance_backend.service.impl.AuthServiceImpl;
@@ -22,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +35,8 @@ class AuthServiceImplTest {
     private AuthenticationManager authenticationManager;
     @Mock
     private JwtService jwtService;
+    @Mock
+    private RecoveryCodeService recoveryCodeService;
 
     private AuthServiceImpl authService;
     private User user;
@@ -47,7 +47,8 @@ class AuthServiceImplTest {
                 userService,
                 userRepository,
                 authenticationManager,
-                jwtService
+                jwtService,
+                recoveryCodeService
         );
         user = new User();
         user.setId(1L);
@@ -69,13 +70,18 @@ class AuthServiceImplTest {
         userDto.setId(1L);
         when(userService.createUser(request)).thenReturn(userDto);
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(recoveryCodeService.generate()).thenReturn("personal-recovery-code");
+        when(recoveryCodeService.hash("personal-recovery-code")).thenReturn("recovery-code-hash");
 
         AuthResponseDto response = authService.register(request);
 
         assertEquals("jwt-token", response.getAccessToken());
         assertEquals("Bearer", response.getTokenType());
         assertEquals(1L, response.getUser().getId());
+        assertEquals("personal-recovery-code", response.getRecoveryCode());
+        assertEquals("recovery-code-hash", user.getRecoveryCodeHash());
         verify(userService).createUser(request);
+        verify(userRepository).save(user);
     }
 
     @Test
@@ -99,26 +105,6 @@ class AuthServiceImplTest {
                         "user@example.com",
                         "password123"
                 )
-        );
-    }
-
-    @Test
-    void registerRejectsASecondUser() {
-        when(userRepository.count()).thenReturn(1L);
-        RegisterRequest request = new RegisterRequest(
-                "Another user",
-                "another@example.com",
-                "password123"
-        );
-
-        BusinessRuleException exception = assertThrows(
-                BusinessRuleException.class,
-                () -> authService.register(request)
-        );
-
-        assertEquals(
-                "Registration is closed for this single-user application",
-                exception.getMessage()
         );
     }
 

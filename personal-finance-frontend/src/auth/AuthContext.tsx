@@ -12,7 +12,7 @@ interface AuthContextValue {
   session: AuthSession | null
   isAuthenticated: boolean
   login: (input: LoginInput) => Promise<void>
-  register: (input: RegisterInput) => Promise<void>
+  register: (input: RegisterInput) => Promise<AuthSession>
   logout: () => void
 }
 
@@ -37,8 +37,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     async register(input) {
       const nextSession = await authApi.register(input)
-      saveAuthSession(nextSession)
-      setSession(nextSession)
+      const authenticatedSession: AuthSession = {
+        accessToken: nextSession.accessToken,
+        tokenType: nextSession.tokenType,
+        expiresIn: nextSession.expiresIn,
+        user: nextSession.user,
+      }
+      saveAuthSession(authenticatedSession)
+      setSession(authenticatedSession)
+      return nextSession
     },
     logout() {
       clearAuthSession()

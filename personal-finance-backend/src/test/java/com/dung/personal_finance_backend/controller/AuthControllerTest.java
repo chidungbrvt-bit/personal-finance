@@ -1,6 +1,7 @@
 package com.dung.personal_finance_backend.controller;
 
 import com.dung.personal_finance_backend.dto.AuthResponseDto;
+import com.dung.personal_finance_backend.dto.PasswordResetResultDto;
 import com.dung.personal_finance_backend.dto.UserDto;
 import com.dung.personal_finance_backend.dto.request.LoginRequest;
 import com.dung.personal_finance_backend.dto.request.RegisterRequest;
@@ -59,6 +60,7 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("User registered successfully"))
                 .andExpect(jsonPath("$.data.accessToken").value("test-token"))
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.data.recoveryCode").value("personal-recovery-code"))
                 .andExpect(jsonPath("$.data.user.role").value("USER"));
 
         verify(authService).register(any(RegisterRequest.class));
@@ -112,10 +114,12 @@ class AuthControllerTest {
 
     @Test
     void resetPasswordAcceptsValidRequest() throws Exception {
+        when(passwordResetService.resetPassword(any()))
+                .thenReturn(new PasswordResetResultDto(null));
         mockMvc.perform(post("/api/auth/reset-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"recoveryCode":"test-recovery-code","newPassword":"newPassword123"}
+                                {"email":"dung@example.com","recoveryCode":"test-recovery-code","newPassword":"newPassword123"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Password reset successfully"));
@@ -129,6 +133,6 @@ class AuthControllerTest {
         user.setName("Dung");
         user.setEmail("dung@example.com");
         user.setRole(Role.USER);
-        return new AuthResponseDto("test-token", "Bearer", 3600, user);
+        return new AuthResponseDto("test-token", "Bearer", 3600, user, "personal-recovery-code");
     }
 }

@@ -47,26 +47,28 @@ class SecurityIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "email":"missing@example.com",
                                   "recoveryCode":"wrong-recovery-code",
                                   "newPassword":"newPassword123"
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Recovery code is invalid"));
+                .andExpect(jsonPath("$.message").value("Email or recovery code is invalid"));
     }
 
     @Test
     void singleUserCanResetPasswordAndLoginWithTheNewPassword() throws Exception {
-        registerUser();
+        MvcResult registerResult = registerUser();
+        String recoveryCode = JsonPath.read(
+                registerResult.getResponse().getContentAsString(),
+                "$.data.recoveryCode"
+        );
 
         mockMvc.perform(post("/api/auth/reset-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {
-                                  "recoveryCode":"test-recovery-code-123456",
-                                  "newPassword":"newPassword456"
-                                }
-                                """))
+                                {"email":"user@example.com","recoveryCode":"%s","newPassword":"newPassword456"}
+                                """.formatted(recoveryCode)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Password reset successfully"));
 
@@ -156,7 +158,8 @@ class SecurityIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.data.user.email").value("user@example.com"));
+                .andExpect(jsonPath("$.data.user.email").value("user@example.com"))
+                .andExpect(jsonPath("$.data.recoveryCode").doesNotExist());
     }
 
     @Test
@@ -224,6 +227,7 @@ class SecurityIntegrationTest {
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.data.recoveryCode").isNotEmpty())
                 .andReturn();
     }
 
