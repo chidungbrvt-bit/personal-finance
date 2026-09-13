@@ -2,6 +2,8 @@
 
 Responsive React dashboard for the Personal Finance Spring Boot backend. It uses the real REST API and JWT authentication; there is no mock data.
 
+Production: https://personal-finance-blond-seven.vercel.app
+
 ## Stack
 
 - React + TypeScript + Vite
