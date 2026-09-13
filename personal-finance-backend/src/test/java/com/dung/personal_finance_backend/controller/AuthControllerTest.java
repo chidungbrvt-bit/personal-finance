@@ -7,6 +7,7 @@ import com.dung.personal_finance_backend.dto.request.RegisterRequest;
 import com.dung.personal_finance_backend.enums.Role;
 import com.dung.personal_finance_backend.exception.GlobalExceptionHandler;
 import com.dung.personal_finance_backend.service.AuthService;
+import com.dung.personal_finance_backend.service.PasswordResetService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,13 +29,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerTest {
     @Mock
     private AuthService authService;
+    @Mock
+    private PasswordResetService passwordResetService;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
-                .standaloneSetup(new AuthController(authService))
+                .standaloneSetup(new AuthController(authService, passwordResetService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -105,6 +108,46 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.data.password").exists());
 
         verifyNoInteractions(authService);
+    }
+
+    @Test
+    void forgotPasswordReturnsGenericResponse() throws Exception {
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"dung@example.com"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(
+                        "If an account exists for that email, a password reset link has been sent"));
+
+        verify(passwordResetService).requestReset("dung@example.com");
+    }
+
+    @Test
+    void forgotPasswordRejectsInvalidEmail() throws Exception {
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"not-an-email"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.email").exists());
+
+        verifyNoInteractions(passwordResetService);
+    }
+
+    @Test
+    void resetPasswordAcceptsValidRequest() throws Exception {
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"token":"reset-token","newPassword":"newPassword123"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Password reset successfully"));
+
+        verify(passwordResetService).resetPassword(any());
     }
 
     private AuthResponseDto authResponse() {

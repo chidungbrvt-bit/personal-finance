@@ -42,6 +42,18 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void forgotPasswordEndpointIsPublicAndDoesNotRevealUnknownEmail() throws Exception {
+        mockMvc.perform(post("/api/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"unknown@example.com"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value(
+                        "If an account exists for that email, a password reset link has been sent"));
+    }
+
+    @Test
     void corsAllowsPreflightRequestFromConfiguredFrontend() throws Exception {
         mockMvc.perform(options("/api/users/1")
                         .header(HttpHeaders.ORIGIN, "http://localhost:5173")

@@ -32,6 +32,7 @@ When `VITE_API_BASE_URL` is empty in development, requests use Vite's backend pr
 ## Pages
 
 - Register and login: create a user, receive a JWT and start an authenticated session
+- Forgot/reset password: request a one-time email link and choose a new password
 - Dashboard: monthly summary, balances, budget progress and recent transactions
 - Accounts: create, edit, remove/archive, restore and view computed balances
 - Categories: create, edit, delete and group by income/expense

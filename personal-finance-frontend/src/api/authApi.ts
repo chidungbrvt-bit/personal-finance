@@ -1,4 +1,4 @@
-import type { ApiResponse, AuthSession, LoginInput, RegisterInput } from '../types'
+import type { ApiResponse, AuthSession, LoginInput, RegisterInput, ResetPasswordInput } from '../types'
 import { apiClient } from './apiClient'
 
 export const authApi = {
@@ -8,5 +8,13 @@ export const authApi = {
 
   async register(input: RegisterInput) {
     return (await apiClient.post<ApiResponse<AuthSession>>('/api/auth/register', input)).data.data
+  },
+
+  async forgotPassword(email: string) {
+    return (await apiClient.post<ApiResponse<null>>('/api/auth/forgot-password', { email })).data
+  },
+
+  async resetPassword(input: ResetPasswordInput) {
+    return (await apiClient.post<ApiResponse<null>>('/api/auth/reset-password', input)).data
   },
 }

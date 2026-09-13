@@ -21,6 +21,12 @@ Optional variable:
 | `SPRING_PROFILES_ACTIVE` | `dev` |
 | `FLYWAY_BASELINE_ON_MIGRATE` | `false` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` |
+| `MAIL_HOST` | `smtp.gmail.com` |
+| `MAIL_PORT` | `587` |
+| `MAIL_USERNAME` | Gmail address used to send password-reset messages |
+| `MAIL_PASSWORD` | Google App Password for the sender account |
+| `FRONTEND_URL` | `http://localhost:5173` |
+| `PASSWORD_RESET_EXPIRATION_MINUTES` | `15` |
 
 `CORS_ALLOWED_ORIGINS` is a comma-separated list of exact frontend origins. Do not include a path or trailing slash. For example:
 
@@ -69,12 +75,34 @@ PowerShell environment variables above exist only in that terminal session. In I
 
 The `.env.example` file is documentation only. Spring Boot does not automatically load a `.env` file. If you create `.env` for another tool, Git ignores it.
 
+## Forgot password email
+
+Password reset uses Gmail SMTP. The application stores only a SHA-256 hash of each random reset token, expires it after 15 minutes by default, and removes it after successful use. The forgot-password endpoint always returns the same response whether the email exists, so it does not reveal registered accounts.
+
+For a Gmail sender account:
+
+1. Enable Google 2-Step Verification.
+2. Create an App Password in the Google Account security settings.
+3. Set `MAIL_USERNAME` to the Gmail address and `MAIL_PASSWORD` to the generated 16-character App Password. Do not use the normal Gmail password.
+4. Set `FRONTEND_URL` to the public frontend origin, without a trailing slash.
+
+Example for local PowerShell:
+
+```powershell
+$env:MAIL_USERNAME = "sender@gmail.com"
+$env:MAIL_PASSWORD = "your-google-app-password"
+$env:FRONTEND_URL = "http://localhost:5173"
+```
+
+Use the same variable names in Railway for the backend service. Never commit their real values.
+
 ## Database migrations
 
 Flyway migrations live in `src/main/resources/db/migration`:
 
 - `V1__create_initial_schema.sql` creates a new database schema.
 - `V2__add_query_indexes.sql` adds indexes for the repository queries used by the application.
+- `V3__add_password_reset_tokens.sql` creates the expiring password-reset token table.
 
 For a new empty database, keep `FLYWAY_BASELINE_ON_MIGRATE=false`; Flyway runs V1 and V2 normally.
 
