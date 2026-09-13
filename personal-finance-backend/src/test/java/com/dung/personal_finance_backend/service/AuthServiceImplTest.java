@@ -6,6 +6,7 @@ import com.dung.personal_finance_backend.dto.request.LoginRequest;
 import com.dung.personal_finance_backend.dto.request.RegisterRequest;
 import com.dung.personal_finance_backend.entity.User;
 import com.dung.personal_finance_backend.enums.Role;
+import com.dung.personal_finance_backend.exception.BusinessRuleException;
 import com.dung.personal_finance_backend.repository.UserRepository;
 import com.dung.personal_finance_backend.security.JwtService;
 import com.dung.personal_finance_backend.service.impl.AuthServiceImpl;
@@ -21,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,12 +55,11 @@ class AuthServiceImplTest {
         user.setEmail("user@example.com");
         user.setPassword("encoded-password");
         user.setRole(Role.USER);
-        when(jwtService.generateToken(user)).thenReturn("jwt-token");
-        when(jwtService.getExpirationSeconds()).thenReturn(3600L);
     }
 
     @Test
     void registerCreatesUserAndReturnsToken() {
+        stubJwt();
         RegisterRequest request = new RegisterRequest(
                 "Dung",
                 "user@example.com",
@@ -79,6 +80,7 @@ class AuthServiceImplTest {
 
     @Test
     void loginNormalizesEmailAndReturnsToken() {
+        stubJwt();
         LoginRequest request = new LoginRequest("  USER@EXAMPLE.COM  ", "password123");
         Authentication authentication = UsernamePasswordAuthenticationToken.authenticated(
                 user,
@@ -98,5 +100,30 @@ class AuthServiceImplTest {
                         "password123"
                 )
         );
+    }
+
+    @Test
+    void registerRejectsASecondUser() {
+        when(userRepository.count()).thenReturn(1L);
+        RegisterRequest request = new RegisterRequest(
+                "Another user",
+                "another@example.com",
+                "password123"
+        );
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> authService.register(request)
+        );
+
+        assertEquals(
+                "Registration is closed for this single-user application",
+                exception.getMessage()
+        );
+    }
+
+    private void stubJwt() {
+        when(jwtService.generateToken(user)).thenReturn("jwt-token");
+        when(jwtService.getExpirationSeconds()).thenReturn(3600L);
     }
 }

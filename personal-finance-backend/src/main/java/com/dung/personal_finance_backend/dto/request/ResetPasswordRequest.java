@@ -5,8 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public class ResetPasswordRequest {
-    @NotBlank(message = "Reset token is required")
-    private String token;
+    @NotBlank(message = "Recovery code is required")
+    @Size(min = 12, max = 128, message = "Recovery code must be between 12 and 128 characters")
+    private String recoveryCode;
 
     @NotBlank(message = "New password is required")
     @Size(min = 8, max = 72, message = "New password must be between 8 and 72 characters")
@@ -16,19 +17,19 @@ public class ResetPasswordRequest {
     }
 
     public ResetPasswordRequest(
-            @JsonProperty("token") String token,
+            @JsonProperty("recoveryCode") String recoveryCode,
             @JsonProperty("newPassword") String newPassword
     ) {
-        this.token = token;
+        this.recoveryCode = recoveryCode;
         this.newPassword = newPassword;
     }
 
-    public String getToken() {
-        return token;
+    public String getRecoveryCode() {
+        return recoveryCode;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setRecoveryCode(String recoveryCode) {
+        this.recoveryCode = recoveryCode;
     }
 
     public String getNewPassword() {

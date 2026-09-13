@@ -69,7 +69,7 @@ export function LoginPage() {
                   </button>
                 </span>
               </label>
-              <div className="text-right"><Link className="text-sm font-bold text-emerald-700 hover:text-emerald-800" to="/forgot-password">Forgot password?</Link></div>
+              <div className="text-right"><Link className="text-sm font-bold text-emerald-700 hover:text-emerald-800" to="/reset-password">Forgot password?</Link></div>
               <button className="button-primary w-full" disabled={submitting}>{submitting ? 'Signing in…' : 'Sign in'}</button>
             </form>
 

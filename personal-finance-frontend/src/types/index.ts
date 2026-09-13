@@ -13,7 +13,7 @@ export interface User {
 }
 export interface LoginInput { email: string; password: string }
 export interface RegisterInput { name: string; email: string; password: string }
-export interface ResetPasswordInput { token: string; newPassword: string }
+export interface ResetPasswordInput { recoveryCode: string; newPassword: string }
 export interface AuthSession {
   accessToken: string; tokenType: 'Bearer'; expiresIn: number; user: User
 }

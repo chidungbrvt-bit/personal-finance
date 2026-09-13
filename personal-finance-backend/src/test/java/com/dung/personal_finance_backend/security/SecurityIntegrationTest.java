@@ -42,15 +42,48 @@ class SecurityIntegrationTest {
     }
 
     @Test
-    void forgotPasswordEndpointIsPublicAndDoesNotRevealUnknownEmail() throws Exception {
-        mockMvc.perform(post("/api/auth/forgot-password")
+    void resetPasswordEndpointIsPublic() throws Exception {
+        mockMvc.perform(post("/api/auth/reset-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"email":"unknown@example.com"}
+                                {
+                                  "recoveryCode":"wrong-recovery-code",
+                                  "newPassword":"newPassword123"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Recovery code is invalid"));
+    }
+
+    @Test
+    void singleUserCanResetPasswordAndLoginWithTheNewPassword() throws Exception {
+        registerUser();
+
+        mockMvc.perform(post("/api/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "recoveryCode":"test-recovery-code-123456",
+                                  "newPassword":"newPassword456"
+                                }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value(
-                        "If an account exists for that email, a password reset link has been sent"));
+                .andExpect(jsonPath("$.message").value("Password reset successfully"));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"user@example.com","password":"password123"}
+                                """))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"user@example.com","password":"newPassword456"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.accessToken").isNotEmpty());
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.dung.personal_finance_backend.dto.UserDto;
 import com.dung.personal_finance_backend.dto.request.LoginRequest;
 import com.dung.personal_finance_backend.dto.request.RegisterRequest;
 import com.dung.personal_finance_backend.entity.User;
+import com.dung.personal_finance_backend.exception.BusinessRuleException;
 import com.dung.personal_finance_backend.repository.UserRepository;
 import com.dung.personal_finance_backend.security.JwtService;
 import com.dung.personal_finance_backend.service.AuthService;
@@ -37,6 +38,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseDto register(RegisterRequest request) {
+        if (userRepository.count() > 0) {
+            throw new BusinessRuleException("Registration is closed for this single-user application");
+        }
         UserDto createdUser = userService.createUser(request);
         User user = userRepository.findById(createdUser.getId())
                 .orElseThrow(() -> new IllegalStateException("Created user could not be loaded"));

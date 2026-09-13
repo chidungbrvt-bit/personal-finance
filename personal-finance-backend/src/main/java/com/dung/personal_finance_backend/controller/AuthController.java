@@ -2,7 +2,6 @@ package com.dung.personal_finance_backend.controller;
 
 import com.dung.personal_finance_backend.dto.request.LoginRequest;
 import com.dung.personal_finance_backend.dto.request.RegisterRequest;
-import com.dung.personal_finance_backend.dto.request.ForgotPasswordRequest;
 import com.dung.personal_finance_backend.dto.request.ResetPasswordRequest;
 import com.dung.personal_finance_backend.response.ResponseHandler;
 import com.dung.personal_finance_backend.service.AuthService;
@@ -45,18 +44,6 @@ public class AuthController {
                 "Login successful",
                 HttpStatus.OK,
                 authService.login(request)
-        );
-    }
-
-    @PostMapping("/forgot-password")
-    public ResponseEntity<Object> forgotPassword(
-            @Valid @RequestBody ForgotPasswordRequest request
-    ) {
-        passwordResetService.requestReset(request.getEmail());
-        return ResponseHandler.responseBuilder(
-                "If an account exists for that email, a password reset link has been sent",
-                HttpStatus.OK,
-                null
         );
     }
 

@@ -111,38 +111,11 @@ class AuthControllerTest {
     }
 
     @Test
-    void forgotPasswordReturnsGenericResponse() throws Exception {
-        mockMvc.perform(post("/api/auth/forgot-password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"email":"dung@example.com"}
-                                """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value(
-                        "If an account exists for that email, a password reset link has been sent"));
-
-        verify(passwordResetService).requestReset("dung@example.com");
-    }
-
-    @Test
-    void forgotPasswordRejectsInvalidEmail() throws Exception {
-        mockMvc.perform(post("/api/auth/forgot-password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"email":"not-an-email"}
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.data.email").exists());
-
-        verifyNoInteractions(passwordResetService);
-    }
-
-    @Test
     void resetPasswordAcceptsValidRequest() throws Exception {
         mockMvc.perform(post("/api/auth/reset-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"token":"reset-token","newPassword":"newPassword123"}
+                                {"recoveryCode":"test-recovery-code","newPassword":"newPassword123"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Password reset successfully"));
