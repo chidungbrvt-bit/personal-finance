@@ -21,7 +21,7 @@ export function ResetPasswordPage() {
     if (password !== confirmPassword) { setError('Passwords do not match'); return }
     setSubmitting(true)
     try {
-      await authApi.resetPassword({ recoveryCode, newPassword: password })
+      await authApi.resetPassword({ recoveryCode: recoveryCode.trim(), newPassword: password })
       setSuccess(true)
     } catch (requestError) {
       setError(getApiErrorMessage(requestError))

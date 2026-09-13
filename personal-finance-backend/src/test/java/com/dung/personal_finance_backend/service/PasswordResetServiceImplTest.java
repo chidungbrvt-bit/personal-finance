@@ -60,6 +60,24 @@ class PasswordResetServiceImplTest {
     }
 
     @Test
+    void resetPasswordIgnoresAccidentalOuterWhitespaceInRecoveryCode() {
+        passwordResetService = new PasswordResetServiceImpl(
+                userRepository,
+                passwordEncoder,
+                "  " + RECOVERY_CODE + "  "
+        );
+        when(userRepository.findAll()).thenReturn(List.of(user));
+        when(passwordEncoder.encode("newPassword123")).thenReturn("new-hash");
+
+        passwordResetService.resetPassword(
+                new ResetPasswordRequest("  " + RECOVERY_CODE + "  ", "newPassword123")
+        );
+
+        assertEquals("new-hash", user.getPassword());
+        verify(userRepository).save(user);
+    }
+
+    @Test
     void resetPasswordRejectsInvalidRecoveryCode() {
         BusinessRuleException exception = assertThrows(
                 BusinessRuleException.class,

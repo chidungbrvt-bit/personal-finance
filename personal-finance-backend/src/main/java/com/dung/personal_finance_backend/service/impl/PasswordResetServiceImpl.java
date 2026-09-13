@@ -27,7 +27,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.configuredRecoveryCode = configuredRecoveryCode;
+        this.configuredRecoveryCode = configuredRecoveryCode.trim();
     }
 
     @Override
@@ -36,7 +36,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         if (configuredRecoveryCode.isBlank()) {
             throw new BusinessRuleException("Password recovery is not configured");
         }
-        if (!codesMatch(request.getRecoveryCode(), configuredRecoveryCode)) {
+        if (!codesMatch(request.getRecoveryCode().trim(), configuredRecoveryCode)) {
             throw new BusinessRuleException("Recovery code is invalid");
         }
 
