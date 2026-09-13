@@ -20,6 +20,13 @@ Optional variable:
 | `JWT_EXPIRATION_MS` | `86400000` (24 hours) |
 | `SPRING_PROFILES_ACTIVE` | `dev` |
 | `FLYWAY_BASELINE_ON_MIGRATE` | `false` |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173` |
+
+`CORS_ALLOWED_ORIGINS` is a comma-separated list of exact frontend origins. Do not include a path or trailing slash. For example:
+
+```text
+https://personal-finance.example.com,https://personal-finance-preview.vercel.app
+```
 
 ## Application profiles
 
