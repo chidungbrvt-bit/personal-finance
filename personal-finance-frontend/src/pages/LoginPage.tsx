@@ -1,4 +1,4 @@
-import { LockKeyhole, WalletCards } from 'lucide-react'
+import { Eye, EyeOff, LockKeyhole, WalletCards } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/apiClient'
@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthContext'
 export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { login } = useAuth()
@@ -61,7 +62,12 @@ export function LoginPage() {
               </label>
               <label>
                 <span className="field-label">Password</span>
-                <input className="field-input" type="password" autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} placeholder="Your password" />
+                <span className="relative block">
+                  <input className="field-input pr-12" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={event => setPassword(event.target.value)} placeholder="Your password" />
+                  <button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-400 transition hover:text-slate-700" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}>
+                    {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                  </button>
+                </span>
               </label>
               <button className="button-primary w-full" disabled={submitting}>{submitting ? 'Signing in…' : 'Sign in'}</button>
             </form>

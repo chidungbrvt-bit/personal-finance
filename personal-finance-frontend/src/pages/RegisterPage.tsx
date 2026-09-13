@@ -1,4 +1,4 @@
-import { UserPlus, WalletCards } from 'lucide-react'
+import { Eye, EyeOff, UserPlus, WalletCards } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getApiErrorMessage } from '../api/apiClient'
@@ -9,6 +9,8 @@ export function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
@@ -64,8 +66,8 @@ export function RegisterPage() {
             <form onSubmit={submit} className="mt-6 space-y-4">
               <label><span className="field-label">Name</span><input className="field-input" autoComplete="name" required value={name} onChange={event => setName(event.target.value)} placeholder="Your name" /></label>
               <label><span className="field-label">Email</span><input className="field-input" type="email" autoComplete="email" required value={email} onChange={event => setEmail(event.target.value)} placeholder="you@example.com" /></label>
-              <label><span className="field-label">Password</span><input className="field-input" type="password" autoComplete="new-password" minLength={8} maxLength={72} required value={password} onChange={event => setPassword(event.target.value)} placeholder="8–72 characters" /></label>
-              <label><span className="field-label">Confirm password</span><input className="field-input" type="password" autoComplete="new-password" minLength={8} maxLength={72} required value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} placeholder="Repeat your password" /></label>
+              <label><span className="field-label">Password</span><span className="relative block"><input className="field-input pr-12" type={showPassword ? 'text' : 'password'} autoComplete="new-password" minLength={8} maxLength={72} required value={password} onChange={event => setPassword(event.target.value)} placeholder="8–72 characters" /><button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-400 transition hover:text-slate-700" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}>{showPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button></span></label>
+              <label><span className="field-label">Confirm password</span><span className="relative block"><input className="field-input pr-12" type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" minLength={8} maxLength={72} required value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} placeholder="Repeat your password" /><button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-slate-400 transition hover:text-slate-700" onClick={() => setShowConfirmPassword(value => !value)} aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} aria-pressed={showConfirmPassword}>{showConfirmPassword ? <EyeOff size={19} /> : <Eye size={19} />}</button></span></label>
               <button className="button-primary w-full" disabled={submitting}>{submitting ? 'Creating account…' : 'Create account'}</button>
             </form>
 
