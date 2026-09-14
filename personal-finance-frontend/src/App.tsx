@@ -3,6 +3,8 @@ import { lazy, Suspense } from 'react'
 import { AppLayout } from './layouts/AppLayout'
 import { LoadingState } from './components/PageState'
 import { ProtectedRoute, PublicOnlyRoute } from './auth/AuthRoutes'
+import { LanguageToggle } from './components/LanguageToggle'
+import { useTranslation } from './i18n/LanguageContext'
 
 const AccountsPage = lazy(() => import('./pages/AccountsPage').then(module => ({ default: module.AccountsPage })))
 const BudgetsPage = lazy(() => import('./pages/BudgetsPage').then(module => ({ default: module.BudgetsPage })))
@@ -14,8 +16,9 @@ const RegisterPage = lazy(() => import('./pages/RegisterPage').then(module => ({
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then(module => ({ default: module.ResetPasswordPage })))
 
 function App() {
+  const t = useTranslation()
   return (
-    <Suspense fallback={<div className="p-6"><LoadingState label="Opening page…" /></div>}><Routes>
+    <><LanguageToggle /><Suspense fallback={<div className="p-6"><LoadingState label={t('Opening page…')} /></div>}><Routes>
       <Route element={<PublicOnlyRoute />}>
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
@@ -33,7 +36,7 @@ function App() {
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes></Suspense>
+    </Routes></Suspense></>
   )
 }
 
