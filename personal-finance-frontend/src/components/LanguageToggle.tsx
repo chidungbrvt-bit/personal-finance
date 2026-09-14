@@ -16,7 +16,7 @@ export function LanguageToggle() {
       <Languages size={17} />
       <span className="text-slate-400">EN</span>
       <span className={`relative h-6 w-11 rounded-full transition ${vietnamese ? 'bg-emerald-600' : 'bg-slate-300'}`}>
-        <span className={`absolute top-1 size-4 rounded-full bg-white shadow transition-transform ${vietnamese ? 'translate-x-1' : 'translate-x-6'}`} />
+        <span className={`absolute left-0 top-1 size-4 rounded-full bg-white shadow transition-transform duration-200 ${vietnamese ? 'translate-x-1' : 'translate-x-6'}`} />
       </span>
       <span className="text-slate-400">VI</span>
     </button>
