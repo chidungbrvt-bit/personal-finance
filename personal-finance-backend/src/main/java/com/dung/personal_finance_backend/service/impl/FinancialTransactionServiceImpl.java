@@ -82,6 +82,13 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
                     "Category type must match transaction type"
             );
         }
+        validateSufficientBalance(
+                account,
+                userId,
+                financialTransactionDto.getType(),
+                financialTransactionDto.getAmount(),
+                null
+        );
         FinancialTransaction financialTransaction = FinancialTransactionMapper.toEntity(financialTransactionDto);
         financialTransaction.setUser(user);
         financialTransaction.setAccount(account);
@@ -221,6 +228,14 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
                     "Category type must match financial transaction type"
             );
         }
+
+        validateSufficientBalance(
+                account,
+                userId,
+                financialTransactionDto.getType(),
+                financialTransactionDto.getAmount(),
+                financialTransaction
+        );
 
         financialTransaction.setType(financialTransactionDto.getType());
         financialTransaction.setAmount(financialTransactionDto.getAmount());
@@ -375,5 +390,54 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
             );
         }
         return financialTransactionDtos;
+    }
+
+    private void validateSufficientBalance(
+            Account account,
+            Long userId,
+            TransactionType newType,
+            BigDecimal newAmount,
+            FinancialTransaction transactionBeingUpdated
+    ) {
+        if (newType != TransactionType.EXPENSE) {
+            return;
+        }
+
+        BigDecimal availableBalance = calculateAccountBalance(account, userId);
+
+        if (transactionBeingUpdated != null
+                && transactionBeingUpdated.getAccount() != null
+                && account.getId().equals(transactionBeingUpdated.getAccount().getId())) {
+            if (transactionBeingUpdated.getType() == TransactionType.EXPENSE) {
+                availableBalance = availableBalance.add(transactionBeingUpdated.getAmount());
+            } else if (transactionBeingUpdated.getType() == TransactionType.INCOME) {
+                availableBalance = availableBalance.subtract(transactionBeingUpdated.getAmount());
+            }
+        }
+
+        if (newAmount.compareTo(availableBalance) > 0) {
+            throw new BusinessRuleException("Insufficient account balance");
+        }
+    }
+
+    private BigDecimal calculateAccountBalance(Account account, Long userId) {
+        BigDecimal balance = account.getInitialBalance() != null
+                ? account.getInitialBalance()
+                : BigDecimal.ZERO;
+        List<FinancialTransaction> transactions =
+                financialTransactionRepository.findByAccountIdAndUserId(account.getId(), userId);
+
+        if (transactions == null) {
+            return balance;
+        }
+
+        for (FinancialTransaction transaction : transactions) {
+            if (transaction.getType() == TransactionType.INCOME) {
+                balance = balance.add(transaction.getAmount());
+            } else if (transaction.getType() == TransactionType.EXPENSE) {
+                balance = balance.subtract(transaction.getAmount());
+            }
+        }
+        return balance;
     }
 }

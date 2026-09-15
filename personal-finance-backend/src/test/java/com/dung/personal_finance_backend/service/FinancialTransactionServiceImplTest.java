@@ -76,6 +76,7 @@ class FinancialTransactionServiceImplTest {
         account.setId(accountId);
         account.setUser(user);
         account.setActive(true);
+        account.setInitialBalance(new BigDecimal("100.00"));
 
         Category category = new Category();
         category.setId(categoryId);
@@ -174,6 +175,33 @@ class FinancialTransactionServiceImplTest {
 
         verify(financialTransactionRepository, never())
                 .save(any(FinancialTransaction.class));
+    }
+
+    @Test
+    void createFinancialTransaction_shouldRejectExpenseGreaterThanAccountBalance() {
+        Long userId = 1L;
+        Long accountId = 10L;
+        User user = createUser(userId);
+        Account account = createAccount(accountId, user, true);
+        account.setInitialBalance(new BigDecimal("100.00"));
+        Category category = createCategory(20L, user, TransactionType.EXPENSE, true);
+        FinancialTransactionDto request = createTransactionDto(
+                TransactionType.EXPENSE, new BigDecimal("100.01"), accountId, category.getId()
+        );
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(accountRepository.findByIdAndUserId(accountId, userId)).thenReturn(Optional.of(account));
+        when(categoryRepository.findByIdAndUserId(category.getId(), userId)).thenReturn(Optional.of(category));
+        when(financialTransactionRepository.findByAccountIdAndUserId(accountId, userId))
+                .thenReturn(List.of());
+
+        BusinessRuleException exception = assertThrows(
+                BusinessRuleException.class,
+                () -> financialTransactionService.createFinancialTransaction(userId, request)
+        );
+
+        assertEquals("Insufficient account balance", exception.getMessage());
+        verify(financialTransactionRepository, never()).save(any(FinancialTransaction.class));
     }
 
     @Test
@@ -1194,6 +1222,7 @@ class FinancialTransactionServiceImplTest {
         account.setId(accountId);
         account.setUser(user);
         account.setActive(active);
+        account.setInitialBalance(new BigDecimal("1000.00"));
         return account;
     }
 
