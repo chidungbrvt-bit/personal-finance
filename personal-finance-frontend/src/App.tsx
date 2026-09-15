@@ -4,6 +4,7 @@ import { AppLayout } from './layouts/AppLayout'
 import { LoadingState } from './components/PageState'
 import { ProtectedRoute, PublicOnlyRoute } from './auth/AuthRoutes'
 import { LanguageToggle } from './components/LanguageToggle'
+import { PwaInstallButton } from './components/PwaInstallButton'
 import { useLanguage, useTranslation } from './i18n/LanguageContext'
 
 const AccountsPage = lazy(() => import('./pages/AccountsPage').then(module => ({ default: module.AccountsPage })))
@@ -19,7 +20,7 @@ function App() {
   const t = useTranslation()
   const { language } = useLanguage()
   return (
-    <><LanguageToggle /><Suspense key={language} fallback={<div className="p-6"><LoadingState label={t('Opening page…')} /></div>}><Routes>
+    <><LanguageToggle /><PwaInstallButton /><Suspense key={language} fallback={<div className="p-6"><LoadingState label={t('Opening page…')} /></div>}><Routes>
       <Route element={<PublicOnlyRoute />}>
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
