@@ -27,6 +27,14 @@ export interface Account {
 export interface AccountInput {
   name: string; type: AccountType; initialBalance: number; currency: 'VND'; active?: boolean
 }
+export interface AccountTransfer {
+  id: number; sourceAccountId: number; targetAccountId: number; amount: number
+  transferDate: string; description: string | null; createdAt: string | null
+}
+export interface AccountTransferInput {
+  sourceAccountId: number; targetAccountId: number; amount: number
+  transferDate: string; description: string
+}
 export interface Category {
   id: number; name: string; type: TransactionType; description: string | null
   active: boolean; createdAt: string | null

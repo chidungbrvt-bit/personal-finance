@@ -12,6 +12,7 @@ import com.dung.personal_finance_backend.exception.CategoryNotFoundException;
 import com.dung.personal_finance_backend.exception.FinancialTransactionNotFoundException;
 import com.dung.personal_finance_backend.exception.UserNotFoundException;
 import com.dung.personal_finance_backend.repository.AccountRepository;
+import com.dung.personal_finance_backend.repository.AccountTransferRepository;
 import com.dung.personal_finance_backend.repository.CategoryRepository;
 import com.dung.personal_finance_backend.repository.FinancialTransactionRepository;
 import com.dung.personal_finance_backend.repository.UserRepository;
@@ -50,6 +51,9 @@ class FinancialTransactionServiceImplTest {
     @Mock
     private CategoryRepository categoryRepository;
 
+    @Mock
+    private AccountTransferRepository accountTransferRepository;
+
     private FinancialTransactionServiceImpl financialTransactionService;
 
     @BeforeEach
@@ -59,7 +63,8 @@ class FinancialTransactionServiceImplTest {
                         financialTransactionRepository,
                         userRepository,
                         accountRepository,
-                        categoryRepository
+                        categoryRepository,
+                        accountTransferRepository
                 );
     }
 

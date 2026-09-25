@@ -11,6 +11,7 @@ import com.dung.personal_finance_backend.exception.BusinessRuleException;
 import com.dung.personal_finance_backend.exception.UserNotFoundException;
 import com.dung.personal_finance_backend.mapper.AccountMapper;
 import com.dung.personal_finance_backend.repository.AccountRepository;
+import com.dung.personal_finance_backend.repository.AccountTransferRepository;
 import com.dung.personal_finance_backend.repository.FinancialTransactionRepository;
 import com.dung.personal_finance_backend.repository.UserRepository;
 import com.dung.personal_finance_backend.service.AccountService;
@@ -25,15 +26,18 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final FinancialTransactionRepository financialTransactionRepository;
+    private final AccountTransferRepository accountTransferRepository;
 
     public AccountServiceImpl(
             AccountRepository accountRepository,
             UserRepository userRepository,
-            FinancialTransactionRepository financialTransactionRepository
+            FinancialTransactionRepository financialTransactionRepository,
+            AccountTransferRepository accountTransferRepository
     ) {
         this.accountRepository = accountRepository;
         this.userRepository = userRepository;
         this.financialTransactionRepository = financialTransactionRepository;
+        this.accountTransferRepository = accountTransferRepository;
     }
 
     @Override
@@ -105,7 +109,11 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findByIdAndUserId(accountId, userId)
                 .orElseThrow(() -> new AccountNotFoundException("Account not found with id: " + accountId));
         Boolean hasTransactions = financialTransactionRepository.existsByAccountIdAndUserId(accountId, userId);
-        if (hasTransactions) {
+        boolean hasTransfers = accountTransferRepository
+                .existsByUserIdAndSourceAccountIdOrUserIdAndTargetAccountId(
+                        userId, accountId, userId, accountId
+                );
+        if (hasTransactions || hasTransfers) {
             account.setActive(false);
             accountRepository.save(account);
         } else {
@@ -139,6 +147,11 @@ public class AccountServiceImpl implements AccountService {
                 balance = balance.subtract(financialTransaction.getAmount());
             }
         }
+        BigDecimal incoming = accountTransferRepository.sumIncoming(userId, accountId);
+        BigDecimal outgoing = accountTransferRepository.sumOutgoing(userId, accountId);
+        balance = balance
+                .add(incoming == null ? BigDecimal.ZERO : incoming)
+                .subtract(outgoing == null ? BigDecimal.ZERO : outgoing);
         return balance;
     }
 

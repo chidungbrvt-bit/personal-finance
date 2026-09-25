@@ -9,6 +9,7 @@ import com.dung.personal_finance_backend.enums.TransactionType;
 import com.dung.personal_finance_backend.exception.*;
 import com.dung.personal_finance_backend.mapper.FinancialTransactionMapper;
 import com.dung.personal_finance_backend.repository.AccountRepository;
+import com.dung.personal_finance_backend.repository.AccountTransferRepository;
 import com.dung.personal_finance_backend.repository.CategoryRepository;
 import com.dung.personal_finance_backend.repository.FinancialTransactionRepository;
 import com.dung.personal_finance_backend.repository.UserRepository;
@@ -27,15 +28,18 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private  final CategoryRepository categoryRepository;
+    private final AccountTransferRepository accountTransferRepository;
 
     public FinancialTransactionServiceImpl(FinancialTransactionRepository financialTransactionRepository,
                                            UserRepository userRepository,
                                            AccountRepository accountRepository,
-                                           CategoryRepository categoryRepository) {
+                                           CategoryRepository categoryRepository,
+                                           AccountTransferRepository accountTransferRepository) {
         this.financialTransactionRepository = financialTransactionRepository;
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
         this.categoryRepository = categoryRepository;
+        this.accountTransferRepository = accountTransferRepository;
     }
 
     @Override
@@ -438,6 +442,11 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
                 balance = balance.subtract(transaction.getAmount());
             }
         }
+        BigDecimal incoming = accountTransferRepository.sumIncoming(userId, account.getId());
+        BigDecimal outgoing = accountTransferRepository.sumOutgoing(userId, account.getId());
+        balance = balance
+                .add(incoming == null ? BigDecimal.ZERO : incoming)
+                .subtract(outgoing == null ? BigDecimal.ZERO : outgoing);
         return balance;
     }
 }

@@ -11,6 +11,7 @@ import com.dung.personal_finance_backend.exception.AccountNotFoundException;
 import com.dung.personal_finance_backend.exception.BusinessRuleException;
 import com.dung.personal_finance_backend.exception.UserNotFoundException;
 import com.dung.personal_finance_backend.repository.AccountRepository;
+import com.dung.personal_finance_backend.repository.AccountTransferRepository;
 import com.dung.personal_finance_backend.repository.FinancialTransactionRepository;
 import com.dung.personal_finance_backend.repository.UserRepository;
 import com.dung.personal_finance_backend.service.impl.AccountServiceImpl;
@@ -44,6 +45,9 @@ class AccountServiceImplTest {
     @Mock
     private FinancialTransactionRepository financialTransactionRepository;
 
+    @Mock
+    private AccountTransferRepository accountTransferRepository;
+
     private AccountServiceImpl accountService;
 
     @BeforeEach
@@ -51,7 +55,8 @@ class AccountServiceImplTest {
         accountService = new AccountServiceImpl(
                 accountRepository,
                 userRepository,
-                financialTransactionRepository
+                financialTransactionRepository,
+                accountTransferRepository
         );
     }
 
@@ -330,6 +335,27 @@ class AccountServiceImplTest {
         BigDecimal result = accountService.getAccountBalance(userId, accountId);
 
         assertEquals(new BigDecimal("1300.00"), result);
+    }
+
+    @Test
+    void getAccountBalance_shouldAddIncomingAndSubtractOutgoingTransfers() {
+        Long userId = 1L;
+        Long accountId = 10L;
+        User user = createUser(userId);
+        Account account = createAccount(accountId, user, new BigDecimal("1000.00"), true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(accountRepository.findByIdAndUserId(accountId, userId)).thenReturn(Optional.of(account));
+        when(financialTransactionRepository.findByAccountIdAndUserId(accountId, userId))
+                .thenReturn(List.of());
+        when(accountTransferRepository.sumIncoming(userId, accountId))
+                .thenReturn(new BigDecimal("400.00"));
+        when(accountTransferRepository.sumOutgoing(userId, accountId))
+                .thenReturn(new BigDecimal("250.00"));
+
+        BigDecimal result = accountService.getAccountBalance(userId, accountId);
+
+        assertEquals(new BigDecimal("1150.00"), result);
     }
 
     @Test
