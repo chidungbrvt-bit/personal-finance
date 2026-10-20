@@ -1,5 +1,11 @@
 # Personal Finance Backend
 
+## Deploy on Render Free
+
+See [DEPLOY_RENDER.md](DEPLOY_RENDER.md) for the Render Docker deployment,
+Aiven MySQL setup, existing-data migration and Vercel cutover. The deploy
+definition is [render.yaml](render.yaml).
+
 ## Local environment
 
 The application reads database credentials and the JWT signing key from environment variables. No real credentials should be committed to Git.
